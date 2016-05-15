@@ -1,0 +1,2 @@
+defmodule Gofish do
+end

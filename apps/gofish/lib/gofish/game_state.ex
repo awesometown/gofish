@@ -8,4 +8,12 @@ defmodule Gofish.GameState do
 	def current_player_id(%{players: [current | _]}) do
 		current.player_id
 	end
+
+	def find_player(%{players: players}, target_id) do
+		player = Enum.find(players, fn(p) -> p.player_id == target_id end)
+		case player do
+			nil -> {:error, :no_player}
+			_ -> player
+		end
+	end
 end

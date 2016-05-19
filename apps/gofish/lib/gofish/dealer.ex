@@ -20,6 +20,14 @@ defmodule Gofish.Dealer do
 	end
 
 	def deal_card([card | rest_cards], player) do
-		{rest_cards, %Gofish.PlayerState{player | cards: [card | player.cards]}}
+		{rest_cards, %Gofish.PlayerState{player | hand: [card | player.hand]}}
+	end
+
+	def exchange_cards(source_player, target_player, source_card, matching_card) do
+		source_player_hand = List.delete(source_player.hand, source_card)
+		target_player_hand = List.delete(target_player.hand, matching_card)
+		source_player = %{source_player | hand: source_player_hand, pairs: source_player.pairs ++ [{source_card, matching_card}]}
+		target_player = %{target_player | hand: target_player_hand}
+		{:ok, source_player, target_player}
 	end
 end

@@ -1,7 +1,9 @@
 defmodule Gofish.GameFsmTest do
 	use ExUnit.Case, async: true
 
-	alias Gofish.Card, as: Card
+	alias Gofish.Card
+	alias Gofish.GameState
+	alias Gofish.GameFsm
 
 	test "starting state has no players" do
 		data = Gofish.GameFsm.new
@@ -117,6 +119,21 @@ defmodule Gofish.GameFsmTest do
 				|> match(&Gofish.GameFsm.play(&1, 1, 2, 1), source_card, target_card)
 	end
 
+	test "request with match updates active players pairs" do
+		source_card = %Card{suit: :spades, rank: 1}
+		target_card = %Card{suit: :diamonds, rank: 1}
+		data = Gofish.GameFsm.new
+				|> Gofish.GameFsm.join(1)
+				|> Gofish.GameFsm.join(2)
+				|> Gofish.GameFsm.start([source_card, target_card], 1)
+				|> match(&Gofish.GameFsm.play(&1, 1, 2, 1), source_card, target_card)
+				|> Gofish.GameFsm.data
+		player1 = GameState.find_player(data, 1)
+		assert length(player1.pairs) == 1
+		pair = hd(player1.pairs)
+		assert pair == {source_card, target_card}
+	end
+
 	test "request to self fails with error" do
 		{response, _fsm} = Gofish.GameFsm.new
 				|> Gofish.GameFsm.join(1)
@@ -124,6 +141,26 @@ defmodule Gofish.GameFsmTest do
 				|> Gofish.GameFsm.start([%Card{suit: :spades, rank: 1}, %Card{suit: :diamonds, rank: 1}], 1)
 				|> Gofish.GameFsm.play(1, 1, 1)
 		assert {:error, :invalid_target} == response
+	end
+
+	test "play simple game" do
+		deck = [
+			Card.new(1, :diamonds),
+			Card.new(1, :clubs),
+			Card.new(2, :spades),
+			Card.new(3, :clubs),
+			Card.new(3, :spades),
+			Card.new(5, :hearts),
+			Card.new(6, :diamonds)]
+		gamestate = Gofish.GameFsm.new
+						|> Gofish.GameFsm.join(1)
+						|> Gofish.GameFsm.join(2)
+						|> Gofish.GameFsm.start(deck, 1)
+						|> match(&Gofish.GameFsm.play(&1, 1, 2, 1))
+						|> gf(&Gofish.GameFsm.play(&1, 1, 2, 2))
+						|> match(&Gofish.GameFsm.play(&1, 2, 1, 3))
+						|> gf(&Gofish.GameFsm.play(&1, 2, 1, 6))
+						|> Gofish.GameFsm.data
 	end
 
 	defp nonmatching_deck() do

@@ -1,1 +1,2 @@
-%{"fsm": {:hex, :fsm, "0.2.0"}}
+%{"dialyze": {:hex, :dialyze, "0.2.1"},
+  "fsm": {:hex, :fsm, "0.2.0"}}

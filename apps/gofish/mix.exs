@@ -35,6 +35,7 @@ defmodule Gofish.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:fsm, "~> 0.2.0"}]
+    [{:fsm, "~> 0.2.0"},
+     {:dialyze, "~> 0.2.0"}]
   end
 end

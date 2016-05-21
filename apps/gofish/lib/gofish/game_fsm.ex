@@ -1,16 +1,16 @@
 defmodule Gofish.GameFsm do
-	import Gofish.GameState, only: [advance_players: 1, find_player: 2]
+	import Gofish.GameState
 	use Fsm, initial_state: :waiting_for_players, initial_data: %Gofish.GameState{}
 
 	defstate waiting_for_players do
 		defevent join(player_id), data: gamestate do
 			next_state(:waiting_for_players, %{gamestate | players: gamestate.players ++ [%Gofish.PlayerState{player_id: player_id}]})
 		end
-		defevent start(), data: gamestate = %{players: players} do
+		defevent start(), data: gamestate do
 			init_game(gamestate, Gofish.Deck.create_shuffled(), 5)
 		end
 		# Use for setting up test scenarios
-		defevent start(cards, num_cards_per_hand), data: gamestate = %{players: players} do
+		defevent start(cards, num_cards_per_hand), data: gamestate do
 			init_game(gamestate, cards, num_cards_per_hand)		
 		end
 	end
@@ -32,31 +32,45 @@ defmodule Gofish.GameFsm do
  	end
 
 	defp handle_play(source_id, target_id, requested_rank, gamestate) do
+		case validate_play(gamestate, source_id, target_id, requested_rank) do
+			{:ok, source_player, target_player, source_card} -> process_play(gamestate, source_player, target_player, source_card)
+			{:error, code} -> respond({:error, code}, :turn, gamestate)
+		end
+	end
+
+	defp process_play(gamestate, source, target, source_card) do
+		matching_card = Enum.find(target.hand, fn(card) -> card.rank == source_card.rank end)
+		case matching_card do
+			nil -> go_fish(gamestate)
+			_ -> card_exchange(gamestate, source, target, source_card, matching_card)
+		end
+	end
+
+	defp validate_play(gamestate, source_id, target_id, requested_rank) do
 		source_player = find_player(gamestate, source_id)
 		source_card = match_rank(source_player.hand, requested_rank)
 		target_player = find_player(gamestate, target_id)
-		response = make_play(source_player, target_player, source_card)
-		case response do
-			{:ok, :go_fish} -> respond(response, :turn, advance_players(gamestate))
-			{:ok, matching_card} -> respond(response, :turn, gamestate)
-			_ -> respond(response, :turn, gamestate)
-		end
+		validate_play(source_player, target_player, source_card)
 	end
+
+	defp validate_play(nil, _target_player, _source_card) do {:error, :invalid_source} end
+	defp validate_play(_source_player, nil, _source_card) do {:error, :invalid_target} end
+	defp validate_play(source_player, source_player, _) do {:error, :invalid_target} end
+	defp validate_play(_source_player, _target_player, nil) do {:error, :invalid_card_selected} end
+	defp validate_play(source_player, target_player, source_card) do {:ok, source_player, target_player, source_card} end
 
 	defp match_rank(cards, rank) do
 		Enum.find(cards, fn(card) -> card.rank == rank end)
 	end
 
-	defp make_play(nil, target_player, _) do {:error, :invalid_source} end
-	defp make_play(source_player, nil, _) do {:error, :invalid_target} end
-	defp make_play(source_player, source_player, _) do {:error, :invalid_target} end
-	defp make_play(source_player, target_player, nil) do {:error, :invalid_card_selected} end
-	
-	defp make_play(source_player, target_player, source_card) do
-		matching_card = Enum.find(target_player.hand, fn(card) -> card.rank == source_card.rank end)
-		case matching_card do
-			nil -> {:ok, :go_fish}
-			_ -> {:ok, matching_card}
-		end
+	defp go_fish(gamestate) do
+		respond(:go_fish, :turn, advance_players(gamestate))
+	end
+
+	defp card_exchange(gamestate, source, target, source_card, matching_card) do
+		{:ok, source, target} = Gofish.Dealer.exchange_cards(source, target, source_card, matching_card)
+		
+		gamestate = gamestate |> update_player(source) |> update_player(target)
+		respond({:match, source_card, matching_card}, :turn, gamestate)
 	end
 end

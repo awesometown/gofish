@@ -47,7 +47,7 @@ defmodule Gofish.GameFsmTest do
 			|> Gofish.GameFsm.join(1)
 			|> Gofish.GameFsm.join(2)
 			|> Gofish.GameFsm.start(nonmatching_deck(), 1)
-			|> ok(&Gofish.GameFsm.play(&1, 1, 2, 1))
+			|> gf(&Gofish.GameFsm.play(&1, 1, 2, 1))
 	end
 
 	test "incorrect player cannot play" do
@@ -63,7 +63,7 @@ defmodule Gofish.GameFsmTest do
 					|> Gofish.GameFsm.join(1)
 					|> Gofish.GameFsm.join(2)
 					|> Gofish.GameFsm.start(nonmatching_deck(), 1)
-					|> ok(&Gofish.GameFsm.play(&1, 1, 2, 1))
+					|> gf(&Gofish.GameFsm.play(&1, 1, 2, 1))
 					|> Gofish.GameFsm.data
 		assert hd(data.players).player_id == 2
 	end
@@ -73,14 +73,14 @@ defmodule Gofish.GameFsmTest do
 					|> Gofish.GameFsm.join(1)
 					|> Gofish.GameFsm.join(2)
 					|> Gofish.GameFsm.start(nonmatching_deck(), 1)
-					|> ok(&Gofish.GameFsm.play(&1, 1, 2, 1))
-					|> ok(&Gofish.GameFsm.play(&1, 2, 1, 2))
+					|> gf(&Gofish.GameFsm.play(&1, 1, 2, 1))
+					|> gf(&Gofish.GameFsm.play(&1, 2, 1, 2))
 					|> Gofish.GameFsm.data
 		assert hd(data.players).player_id == 1
 	end
 
 	test "request with no match gives go_fish" do 
-		{{:ok, :go_fish}, _fsm} = Gofish.GameFsm.new
+		{:go_fish, _fsm} = Gofish.GameFsm.new
 				|> Gofish.GameFsm.join(1)
 				|> Gofish.GameFsm.join(2)
 				|> Gofish.GameFsm.start([%Card{suit: :spades, rank: 1}, %Card{suit: :spades, rank: 2}], 1)
@@ -92,17 +92,9 @@ defmodule Gofish.GameFsmTest do
 				|> Gofish.GameFsm.join(1)
 				|> Gofish.GameFsm.join(2)
 				|> Gofish.GameFsm.start([%Card{suit: :spades, rank: 1}, %Card{suit: :spades, rank: 2}], 1)
-				|> ok(&Gofish.GameFsm.play(&1, 1, 2, 1))
+				|> gf(&Gofish.GameFsm.play(&1, 1, 2, 1))
 				|> Gofish.GameFsm.data
 		assert hd(data.players).player_id == 2
-	end
-
-	test "request with match gives matched_card" do
-		{{:ok, card}, _fsm} = Gofish.GameFsm.new
-				|> Gofish.GameFsm.join(1)
-				|> Gofish.GameFsm.join(2)
-				|> Gofish.GameFsm.start([%Card{suit: :spades, rank: 1}, %Card{suit: :diamonds, rank: 1}], 1)
-				|> Gofish.GameFsm.play(1, 2, 1)
 	end
 
 	test "request with match does not proceed to next player" do
@@ -110,9 +102,19 @@ defmodule Gofish.GameFsmTest do
 				|> Gofish.GameFsm.join(1)
 				|> Gofish.GameFsm.join(2)
 				|> Gofish.GameFsm.start([%Card{suit: :spades, rank: 1}, %Card{suit: :diamonds, rank: 1}], 1)
-				|> ok(&Gofish.GameFsm.play(&1, 1, 2, 1))
+				|> match(&Gofish.GameFsm.play(&1, 1, 2, 1))
 				|> Gofish.GameFsm.data
 		assert hd(data.players).player_id == 1
+	end
+
+	test "request with match returns matching cards" do
+		source_card = %Card{suit: :spades, rank: 1}
+		target_card = %Card{suit: :diamonds, rank: 1}
+		Gofish.GameFsm.new
+				|> Gofish.GameFsm.join(1)
+				|> Gofish.GameFsm.join(2)
+				|> Gofish.GameFsm.start([source_card, target_card], 1)
+				|> match(&Gofish.GameFsm.play(&1, 1, 2, 1), source_card, target_card)
 	end
 
 	test "request to self fails with error" do
@@ -124,18 +126,28 @@ defmodule Gofish.GameFsmTest do
 		assert {:error, :invalid_target} == response
 	end
 
-	defp matching_deck() do
-		[%Card{rank: 1, suit: :diamonds}, %Card{rank: 1, suit: :clubs}]
-	end
-
 	defp nonmatching_deck() do
 		[%Card{rank: 1, suit: :spades}, %Card{rank: 2, suit: :clubs}]
 	end
 
-	defp ok(fsm, fun) do
-		{{status, _result}, new_fsm} = fun.(fsm)
-		assert status == :ok
+	defp result(fsm, fun, expected_result) do
+		{result, new_fsm} = fun.(fsm)
+		assert result == expected_result
 		new_fsm
+	end
+
+	defp match(fsm, fun) do
+		{{:match, _, _}, new_fsm} = fun.(fsm)
+	 	new_fsm
+	end
+
+	defp match(fsm, fun, source_card, target_card) do
+		{{:match, ^source_card, ^target_card}, new_fsm} = fun.(fsm)
+		new_fsm
+	end
+
+	defp gf(fsm, fun) do
+		result(fsm, fun, :go_fish)
 	end
 
 end

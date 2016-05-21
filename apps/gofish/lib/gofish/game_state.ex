@@ -16,4 +16,16 @@ defmodule Gofish.GameState do
 			_ -> player
 		end
 	end
+
+	def update_player(%{players: players} = gamestate, player) do
+		case find_player_index(players, player) do
+			nil -> {:error, :invalid_player_specified}
+			p_index -> players = List.replace_at(players, p_index, player)
+					   %{gamestate | players: players}
+		end		
+	end
+
+	defp find_player_index(players, player) do
+		Enum.find_index(players, fn(%{player_id: pid}) -> pid == player.player_id end)
+	end
 end

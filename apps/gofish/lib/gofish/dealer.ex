@@ -23,7 +23,7 @@ defmodule Gofish.Dealer do
 	end
 
 	def deal_card([card | rest_cards], player) do
-		{rest_cards, %Gofish.PlayerState{player | hand: [card | player.hand]}}
+		{rest_cards, PlayerState.deal_card(player, card)}
 	end
 
 	@spec exchange_cards(%PlayerState{}, %PlayerState{}, %Card{}, %Card{}) :: {:ok, %PlayerState{}, %PlayerState{}}

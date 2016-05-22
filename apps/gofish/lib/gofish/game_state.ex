@@ -1,5 +1,9 @@
 defmodule Gofish.GameState do
-	defstruct players: [], face_down_cards: [], face_up_cards: []
+	defstruct players: [], deck: [], face_up_cards: []
+
+	def new(players, deck) do
+		%Gofish.GameState{players: players, deck: deck}
+	end
 
 	def advance_players(%{players: [current | rest]} = gamestate) do
 		%{gamestate | players: rest ++ [current]}
@@ -23,6 +27,14 @@ defmodule Gofish.GameState do
 			p_index -> players = List.replace_at(players, p_index, player)
 					   %{gamestate | players: players}
 		end		
+	end
+
+	def is_game_over?(%{players: players, deck: [_]}) do
+		false
+	end
+
+	def is_game_over?(%{players: players, deck: []}) do
+		Enum.all?(players, fn(player) -> length(player.hand) == 0 end)
 	end
 
 	defp find_player_index(players, player) do

@@ -2,6 +2,7 @@ defmodule Gofish.GameStateTest do
 	use ExUnit.Case, async: true
 	alias Gofish.GameState
 	alias Gofish.PlayerState
+	alias Gofish.Card
 
 	test "foo" do
 		%Gofish.GameState{players: [1,2]}
@@ -38,5 +39,27 @@ defmodule Gofish.GameStateTest do
 		badplayer = %PlayerState{player_id: 3, hand: [%Gofish.Card{}]}
 		gamestate = %GameState{players: [player1, player2]}
 		{:error, :invalid_player_specified} = GameState.update_player(gamestate, badplayer)
+	end
+
+	test "game not over when cards remain in deck" do
+		player1 = %PlayerState{player_id: 1}
+		player2 = %PlayerState{player_id: 2}
+		deck = [Card.new(1, :diamonds)]
+		gamestate = GameState.new([player1, player2], deck)
+		assert false == GameState.is_game_over?(gamestate)
+	end
+
+	test "game not over when players have cards" do
+		player1 = %PlayerState{player_id: 1} |> PlayerState.deal_card(Card.new(1, :spades))
+		player2 = %PlayerState{player_id: 2} |> PlayerState.deal_card(Card.new(1, :diamonds))
+		gamestate = GameState.new([player1, player2], [])
+		assert false == GameState.is_game_over?(gamestate)
+	end
+
+	test "game over when no cards left" do
+		player1 = %PlayerState{player_id: 1}
+		player2 = %PlayerState{player_id: 2}
+		gamestate = GameState.new([player1, player2], [])
+		assert true == GameState.is_game_over?(gamestate)
 	end
 end

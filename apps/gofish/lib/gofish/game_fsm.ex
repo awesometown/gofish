@@ -1,5 +1,9 @@
 defmodule Gofish.GameFsm do
 	import Gofish.GameState
+	import Logger
+	
+	alias Gofish.PlayerState
+
 	use Fsm, initial_state: :waiting_for_players, initial_data: %Gofish.GameState{}
 
 	defstate waiting_for_players do
@@ -19,23 +23,29 @@ defmodule Gofish.GameFsm do
 		defevent play(player_id, target, requested_rank), data: gamestate = %{players: [curr_player|_]} do
 			if player_id == curr_player.player_id do
 				handle_play(player_id, target, requested_rank, gamestate)
-				#respond(:ok, :turn, advance_players(gamestate))
 			else
 				respond(:not_your_turn, :turn)
 			end
 		end
 	end
 
+	defstate game_over do
+		
+	end
+
  	defp init_game(gamestate = %{players: players}, deck, cards_per_hand) do
  		{rest_cards, dealt_players} = Gofish.Dealer.deal(deck, players, cards_per_hand)
-		next_state(:turn, %{gamestate | players: dealt_players, face_down_cards: rest_cards})
+		next_state(:turn, %{gamestate | players: dealt_players, deck: rest_cards})
  	end
 
 	defp handle_play(source_id, target_id, requested_rank, gamestate) do
-		case validate_play(gamestate, source_id, target_id, requested_rank) do
+		debug("Play: #{source_id} -> #{target_id}, requesting #{requested_rank}")
+		debug(inspect(gamestate))
+		response = case validate_play(gamestate, source_id, target_id, requested_rank) do
 			{:ok, source_player, target_player, source_card} -> process_play(gamestate, source_player, target_player, source_card)
 			{:error, code} -> respond({:error, code}, :turn, gamestate)
 		end
+		debug_response(response)
 	end
 
 	defp process_play(gamestate, source, target, source_card) do
@@ -63,14 +73,31 @@ defmodule Gofish.GameFsm do
 		Enum.find(cards, fn(card) -> card.rank == rank end)
 	end
 
-	defp go_fish(gamestate) do
+	defp go_fish(gamestate  = %{deck: [top_card|remaining_cards], players: [curr_player|rest_players]}) do
+		curr_player = PlayerState.deal_card(curr_player, top_card)
+		gamestate = gamestate
+					|> update_player(curr_player)
+					|> advance_players
+		respond(:go_fish, :turn, gamestate)
+	end
+
+	defp go_fish(gamestate  = %{deck: [], players: players}) do
 		respond(:go_fish, :turn, advance_players(gamestate))
 	end
 
 	defp card_exchange(gamestate, source, target, source_card, matching_card) do
-		{:ok, source, target} = Gofish.Dealer.exchange_cards(source, target, source_card, matching_card)
-		
+		{:ok, source, target} = Gofish.Dealer.exchange_cards(source, target, source_card, matching_card)		
 		gamestate = gamestate |> update_player(source) |> update_player(target)
-		respond({:match, source_card, matching_card}, :turn, gamestate)
+		if is_game_over?(gamestate) do
+			respond({:match, source_card, matching_card}, :game_over, gamestate)
+		else
+			respond({:match, source_card, matching_card}, :turn, gamestate)
+		end
+	end
+
+	defp debug_response(response = {:action_responses, action_responses}) do
+		respond = Keyword.fetch!(action_responses, :respond)
+		debug("Play resulted in #{inspect(respond)} moving to state #{Keyword.fetch!(action_responses, :next_state)}")
+		response
 	end
 end

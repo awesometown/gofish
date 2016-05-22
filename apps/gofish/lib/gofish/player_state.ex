@@ -4,4 +4,8 @@ defmodule Gofish.PlayerState do
 	def new(id) do
 		%Gofish.PlayerState{player_id: id}
 	end
+
+	def deal_card(player, card) do
+		%Gofish.PlayerState{player | hand: [card | player.hand]}
+	end
 end

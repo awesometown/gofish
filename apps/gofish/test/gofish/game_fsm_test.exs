@@ -5,6 +5,8 @@ defmodule Gofish.GameFsmTest do
 	alias Gofish.GameState
 	alias Gofish.GameFsm
 
+	@moduletag :capture_log
+
 	test "starting state has no players" do
 		data = Gofish.GameFsm.new
 				|> Gofish.GameFsm.data
@@ -143,6 +145,38 @@ defmodule Gofish.GameFsmTest do
 		assert {:error, :invalid_target} == response
 	end
 
+	test "go_fish gives player new card" do
+		deck = [
+			Card.new(1, :diamonds),
+			Card.new(1, :clubs),
+			Card.new(2, :spades),
+			Card.new(3, :clubs),
+			Card.new(3, :spades),
+			Card.new(5, :hearts)]
+
+		gamestate = GameFsm.new
+						|> GameFsm.join(1)
+						|> GameFsm.join(2)
+						|> GameFsm.start(deck, 2)
+						|> gf(&GameFsm.play(&1, 1, 2, 2))
+						|> GameFsm.data
+		player1 = GameState.find_player(gamestate, 1)
+		assert length(player1.hand) == 3
+	end
+
+	test "game ends when all cards played" do
+		deck = [
+			Card.new(1, :diamonds),
+			Card.new(1, :clubs)]
+		state = GameFsm.new
+					|> GameFsm.join(1)
+					|> GameFsm.join(2)
+					|> GameFsm.start(deck, 1)
+					|> match(&GameFsm.play(&1, 1, 2, 1))
+					|> GameFsm.state
+		assert :game_over == state
+	end
+
 	test "play simple game" do
 		deck = [
 			Card.new(1, :diamonds),
@@ -150,16 +184,15 @@ defmodule Gofish.GameFsmTest do
 			Card.new(2, :spades),
 			Card.new(3, :clubs),
 			Card.new(3, :spades),
-			Card.new(5, :hearts),
-			Card.new(6, :diamonds)]
+			Card.new(5, :hearts)]
 		gamestate = Gofish.GameFsm.new
 						|> Gofish.GameFsm.join(1)
 						|> Gofish.GameFsm.join(2)
-						|> Gofish.GameFsm.start(deck, 1)
+						|> Gofish.GameFsm.start(deck, 3)
 						|> match(&Gofish.GameFsm.play(&1, 1, 2, 1))
 						|> gf(&Gofish.GameFsm.play(&1, 1, 2, 2))
 						|> match(&Gofish.GameFsm.play(&1, 2, 1, 3))
-						|> gf(&Gofish.GameFsm.play(&1, 2, 1, 6))
+						|> gf(&Gofish.GameFsm.play(&1, 2, 1, 5))
 						|> Gofish.GameFsm.data
 	end
 

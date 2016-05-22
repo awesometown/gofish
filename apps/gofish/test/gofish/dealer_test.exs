@@ -3,7 +3,7 @@ defmodule Gofish.DealerTest do
 	alias Gofish.Card
 	alias Gofish.Dealer
 
-	test "deal_card to player gives card" do
+	test "deal_card from deck gives card from deck" do
 		deck = Gofish.Deck.create
 		player = Gofish.PlayerState.new(1)
 		{rest_cards, player} = Dealer.deal_card(deck, player)

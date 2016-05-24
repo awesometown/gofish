@@ -1,6 +1,6 @@
 defmodule Gofish.Deck do
 	def create do
-		cards = for suit <- [:spades, :diamonds, :clubs, :hearts], rank <- 1..13 do
+		for suit <- [:spades, :diamonds, :clubs, :hearts], rank <- 1..13 do
 			%Gofish.Card{suit: suit, rank: rank}
 		end
 	end

@@ -73,7 +73,7 @@ defmodule Gofish.GameFsm do
 		Enum.find(cards, fn(card) -> card.rank == rank end)
 	end
 
-	defp go_fish(gamestate  = %{deck: [top_card|remaining_cards], players: [curr_player|rest_players]}) do
+	defp go_fish(gamestate  = %{deck: [top_card|_], players: [curr_player|_]}) do
 		curr_player = PlayerState.deal_card(curr_player, top_card)
 		gamestate = gamestate
 					|> update_player(curr_player)
@@ -81,7 +81,7 @@ defmodule Gofish.GameFsm do
 		respond(:go_fish, :turn, gamestate)
 	end
 
-	defp go_fish(gamestate  = %{deck: [], players: players}) do
+	defp go_fish(gamestate = %{deck: []}) do
 		respond(:go_fish, :turn, advance_players(gamestate))
 	end
 

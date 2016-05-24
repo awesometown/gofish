@@ -5,7 +5,7 @@ defmodule Gofish.GameState do
 		%Gofish.GameState{players: players, deck: deck}
 	end
 
-	def advance_players([current|rest] = players) do
+	def advance_players([current|rest]) do
 		players = rest ++ [current]
 		if length(hd(players).hand) > 0 do
 			players
@@ -38,7 +38,7 @@ defmodule Gofish.GameState do
 		end		
 	end
 
-	def is_game_over?(%{players: players, deck: [_]}) do
+	def is_game_over?(%{deck: [_]}) do
 		false
 	end
 

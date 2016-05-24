@@ -5,15 +5,15 @@ defmodule Gofish.Game do
 		GenServer.start_link(__MODULE__, name, name: name)
 	end
 
-	def get_game_state(server) do
+	def get_game_state(_server) do
 		:not_implemented
 	end
 
-	def join_game(server, player) do
+	def join_game(_server, _player) do
 		:not_implemented
 	end
 
-	def make_play(server, {player, card}) do
+	def make_play(_server, {_player, _card}) do
 		:not_implemented
 	end
 
@@ -30,7 +30,7 @@ defmodule Gofish.Game do
 		{:ok, {players, nil, face_down, face_up}}
 	end
 
-	def handle_call({:make_play, {player, card}}, _from, {players, current_player, face_down, face_up}) do
+	def handle_call({:make_play, {_player, _card}}, _from, {_players, _current_player, _face_down, _face_up}) do
 		
 	end
 end

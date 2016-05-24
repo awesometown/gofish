@@ -5,8 +5,17 @@ defmodule Gofish.GameState do
 		%Gofish.GameState{players: players, deck: deck}
 	end
 
-	def advance_players(%{players: [current | rest]} = gamestate) do
-		%{gamestate | players: rest ++ [current]}
+	def advance_players([current|rest] = players) do
+		players = rest ++ [current]
+		if length(hd(players).hand) > 0 do
+			players
+		else
+			advance_players(players)
+		end
+	end
+
+	def advance_players(gamestate) do
+		%{gamestate | players: advance_players(gamestate.players)}
 	end
 
 	def current_player_id(%{players: [current | _]}) do

@@ -4,14 +4,24 @@ defmodule Gofish.GameStateTest do
 	alias Gofish.PlayerState
 	alias Gofish.Card
 
-	test "foo" do
-		%Gofish.GameState{players: [1,2]}
+	test "advance_players cycles players" do
+		player1 = PlayerState.new(1, [Card.new(1, :diamonds)])
+		player2 = PlayerState.new(2, [Card.new(2, :diamonds)])
+		player3 = PlayerState.new(3, [Card.new(3, :diamonds)])
+		gamestate = %GameState{players: [player1, player2, player3]}
+		
+		updated = GameState.advance_players(gamestate)
+		assert updated.players == [player2, player3, player1]
 	end
 
-	test "advance cycles players" do
-		gamestate = %GameState{players: [1,2,3]}
+	test "advance_players skips player with no cards" do
+		player1 = PlayerState.new(1, [Card.new(1, :diamonds)])
+		player2 = PlayerState.new(2, [])
+		player3 = PlayerState.new(3, [Card.new(3, :diamonds)])
+		gamestate = %GameState{players: [player1, player2, player3]}
+		
 		updated = GameState.advance_players(gamestate)
-		assert updated.players == [2,3,1]
+		assert updated.players == [player3, player1, player2]
 	end
 
 	test "find_player finds player" do

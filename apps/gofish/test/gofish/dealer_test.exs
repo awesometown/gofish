@@ -30,8 +30,8 @@ defmodule Gofish.DealerTest do
 	test "exchange_cards" do
 		source_card = %Card{rank: 1, suit: :spades}
 		matching_card = %Card{rank: 1, suit: :diamonds}
-		player1 = %Gofish.PlayerState{player_id: 1, cards: [source_card]}
-		player2 = %Gofish.PlayerState{player_id: 2, cards: [matching_card]}
+		player1 = %Gofish.PlayerState{player_id: 1, hand: [source_card]}
+		player2 = %Gofish.PlayerState{player_id: 2, hand: [matching_card]}
 		{:ok, player1, player2} = Dealer.exchange_cards(player1, player2, source_card, matching_card)
 		assert 0 == length(player1.hand)
 		assert 0 == length(player2.hand)

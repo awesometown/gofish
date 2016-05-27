@@ -38,12 +38,12 @@ defmodule Gofish.GameState do
 		end		
 	end
 
-	def is_game_over?(%{deck: [_]}) do
-		false
-	end
-
 	def is_game_over?(%{players: players, deck: []}) do
 		Enum.all?(players, fn(player) -> length(player.hand) == 0 end)
+	end
+
+	def is_game_over?(gamestate) do
+		false
 	end
 
 	defp find_player_index(players, player) do

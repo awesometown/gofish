@@ -86,12 +86,29 @@ defmodule Gofish.GameFsm do
 	end
 
 	defp card_exchange(gamestate, source, target, source_card, matching_card) do
-		{:ok, source, target} = Gofish.Dealer.exchange_cards(source, target, source_card, matching_card)		
-		gamestate = gamestate |> update_player(source) |> update_player(target)
+		gamestate = gamestate
+			|> exchange_cards(source, target, source_card, matching_card)
+			|> maybe_replenish_hand
 		if is_game_over?(gamestate) do
 			respond({:match, source_card, matching_card}, :game_over, gamestate)
 		else
 			respond({:match, source_card, matching_card}, :turn, gamestate)
+		end
+	end
+
+	defp exchange_cards(gamestate, source, target, source_card, matching_card) do
+		{:ok, source, target} = Gofish.Dealer.exchange_cards(source, target, source_card, matching_card)		
+		gamestate 
+			|> update_player(source)
+			|> update_player(target)
+	end
+
+	defp maybe_replenish_hand(%{deck: deck, players: [curr|_]} = gamestate) do
+		if length(curr.hand) == 0 do
+			{cards, [player]} = Gofish.Dealer.deal(deck, [curr], 5)
+			update_player(gamestate, player)
+		else
+			gamestate
 		end
 	end
 

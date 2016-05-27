@@ -177,6 +177,56 @@ defmodule Gofish.GameFsmTest do
 		assert :game_over == state
 	end
 
+	test "player hand not replenished when they still have cards" do
+		deck = [
+			Card.new(1, :diamonds),
+			Card.new(1, :clubs),
+			Card.new(2, :spades),
+			Card.new(3, :clubs),
+			Card.new(4, :spades),
+			Card.new(5, :hearts),
+			Card.new(6, :diamonds)]
+		data = GameFsm.new
+					|> GameFsm.join(1)
+					|> GameFsm.join(2)
+					|> GameFsm.start(deck, 2)
+					|> match(&GameFsm.play(&1, 1, 2, 1))
+					|> GameFsm.data
+		assert length(hd(data.players).hand) == 1
+	end
+
+	test "player hand replenished to 5 when cards available" do
+		deck = [
+			Card.new(1, :diamonds),
+			Card.new(1, :clubs),
+			Card.new(2, :spades),
+			Card.new(3, :clubs),
+			Card.new(4, :spades),
+			Card.new(5, :hearts),
+			Card.new(6, :diamonds)]
+		data = GameFsm.new
+					|> GameFsm.join(1)
+					|> GameFsm.join(2)
+					|> GameFsm.start(deck, 1)
+					|> match(&GameFsm.play(&1, 1, 2, 1))
+					|> GameFsm.data
+		assert length(hd(data.players).hand) == 5
+	end
+
+	test "player replenishes with all cards remaining when fewer than 5 available" do
+		deck = [
+			Card.new(1, :diamonds),
+			Card.new(1, :clubs),
+			Card.new(2, :spades)]
+		data = GameFsm.new
+					|> GameFsm.join(1)
+					|> GameFsm.join(2)
+					|> GameFsm.start(deck, 1)
+					|> match(&GameFsm.play(&1, 1, 2, 1))
+					|> GameFsm.data
+		assert length(hd(data.players).hand) == 1
+	end
+
 	test "play simple game" do
 		deck = [
 			Card.new(1, :diamonds),

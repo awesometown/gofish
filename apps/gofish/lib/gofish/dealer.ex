@@ -3,6 +3,10 @@ defmodule Gofish.Dealer do
 	alias Gofish.PlayerState
 	alias Gofish.Card
 
+	def deal([], players, _) do
+		{[], players}
+	end
+
 	def deal(cards, players, 0) do
 		{cards, players}
 	end

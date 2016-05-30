@@ -3,6 +3,7 @@ defmodule Gofish.GameFsm do
 	import Logger
 	
 	alias Gofish.PlayerState
+	alias Gofish.Cards
 
 	use Fsm, initial_state: :waiting_for_players, initial_data: %Gofish.GameState{}
 
@@ -49,7 +50,8 @@ defmodule Gofish.GameFsm do
 	end
 
 	defp process_play(gamestate, source, target, source_card) do
-		matching_card = Enum.find(target.hand, fn(card) -> card.rank == source_card.rank end)
+		#matching_card = Enum.find(target.hand, fn(card) -> card.rank == source_card.rank end)
+		matching_card = find_matching_card(target.hand, source_card)
 		case matching_card do
 			nil -> go_fish(gamestate)
 			_ -> card_exchange(gamestate, source, target, source_card, matching_card)
@@ -73,11 +75,16 @@ defmodule Gofish.GameFsm do
 		Enum.find(cards, fn(card) -> card.rank == rank end)
 	end
 
-	defp go_fish(gamestate  = %{deck: [top_card|_], players: [curr_player|_]}) do
-		curr_player = PlayerState.deal_card(curr_player, top_card)
-		gamestate = gamestate
+	defp go_fish(gamestate  = %{deck: [top_card|rest], players: [curr_player|_]}) do
+		result = {:ok, cards, pairs} = Cards.find_pairs([top_card] ++ curr_player.hand)
+		curr_player = PlayerState.update(curr_player, cards, pairs)
+		
+		if pairs == [] do
+			gamestate = advance_players(gamestate)
+		end
+
+		gamestate = %{gamestate | deck: rest}
 					|> update_player(curr_player)
-					|> advance_players
 		respond(:go_fish, :turn, gamestate)
 	end
 
@@ -110,6 +117,10 @@ defmodule Gofish.GameFsm do
 		else
 			gamestate
 		end
+	end
+
+	defp find_matching_card(hand, source_card) do
+		Enum.find(hand, fn(card) -> card.rank == source_card.rank end)
 	end
 
 	defp debug_response(response = {:action_responses, action_responses}) do

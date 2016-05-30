@@ -62,16 +62,6 @@ defmodule Gofish.GameFsmTest do
 									|> Gofish.GameFsm.play(2, 1, "foo")
 	end
 
-	test "play advances current_player" do
-		data = Gofish.GameFsm.new
-					|> Gofish.GameFsm.join(1)
-					|> Gofish.GameFsm.join(2)
-					|> Gofish.GameFsm.start(nonmatching_deck(), 1)
-					|> gf(&Gofish.GameFsm.play(&1, 1, 2, 1))
-					|> Gofish.GameFsm.data
-		assert hd(data.players).player_id == 2
-	end
-
 	test "current player loops after last player plays" do
 		data = Gofish.GameFsm.new
 					|> Gofish.GameFsm.join(1)
@@ -89,26 +79,6 @@ defmodule Gofish.GameFsmTest do
 				|> Gofish.GameFsm.join(2)
 				|> Gofish.GameFsm.start([%Card{suit: :spades, rank: 1}, %Card{suit: :spades, rank: 2}], 1)
 				|> Gofish.GameFsm.play(1, 2, 1)
-	end
-
-	test "request with no match proceeds to next player" do
-		data = Gofish.GameFsm.new
-				|> Gofish.GameFsm.join(1)
-				|> Gofish.GameFsm.join(2)
-				|> Gofish.GameFsm.start([%Card{suit: :spades, rank: 1}, %Card{suit: :spades, rank: 2}], 1)
-				|> gf(&Gofish.GameFsm.play(&1, 1, 2, 1))
-				|> Gofish.GameFsm.data
-		assert hd(data.players).player_id == 2
-	end
-
-	test "request with match does not proceed to next player" do
-		data = Gofish.GameFsm.new
-				|> Gofish.GameFsm.join(1)
-				|> Gofish.GameFsm.join(2)
-				|> Gofish.GameFsm.start([%Card{suit: :spades, rank: 1}, %Card{suit: :diamonds, rank: 1}], 1)
-				|> match(&Gofish.GameFsm.play(&1, 1, 2, 1))
-				|> Gofish.GameFsm.data
-		assert hd(data.players).player_id == 1
 	end
 
 	test "request with match returns matching cards" do
@@ -162,6 +132,69 @@ defmodule Gofish.GameFsmTest do
 						|> GameFsm.data
 		player1 = GameState.find_player(gamestate, 1)
 		assert length(player1.hand) == 3
+	end
+
+	test "go_fish finding matching card adds pair for player" do
+		deck = [
+			Card.new(1, :diamonds),
+			Card.new(2, :spades),
+			Card.new(1, :clubs)]
+
+		gamestate = GameFsm.new
+						|> GameFsm.join(1)
+						|> GameFsm.join(2)
+						|> GameFsm.start(deck, 1)
+						|> gf(&GameFsm.play(&1, 1, 2, 1))
+						|> GameFsm.data
+		player1 = GameState.find_player(gamestate, 1)
+		assert length(player1.pairs) == 1
+	end
+
+	test "go_fish finding matching card does not advance players" do
+		deck = [
+			Card.new(1, :diamonds),
+			Card.new(2, :spades),
+			Card.new(1, :clubs)]
+
+		gamestate = GameFsm.new
+						|> GameFsm.join(1)
+						|> GameFsm.join(2)
+						|> GameFsm.start(deck, 1)
+						|> gf(&GameFsm.play(&1, 1, 2, 1))
+						|> GameFsm.data
+		assert 1 = hd(gamestate.players).player_id	
+	end
+
+
+	test "go_fish not finding match advances players" do
+		deck = [
+			Card.new(1, :diamonds),
+			Card.new(2, :spades),
+			Card.new(3, :clubs)]
+
+		gamestate = Gofish.GameFsm.new
+						|> Gofish.GameFsm.join(1)
+						|> Gofish.GameFsm.join(2)
+						|> Gofish.GameFsm.start(deck, 1)
+						|> gf(&Gofish.GameFsm.play(&1, 1, 2, 1))
+						|> Gofish.GameFsm.data
+		assert 2 == hd(gamestate.players).player_id
+	end
+
+	test "fished card is removed from deck" do
+		deck = [
+			Card.new(1, :diamonds),
+			Card.new(2, :spades),
+			Card.new(1, :clubs),
+			Card.new(5, :clubs)]
+
+		gamestate = GameFsm.new
+						|> GameFsm.join(1)
+						|> GameFsm.join(2)
+						|> GameFsm.start(deck, 1)
+						|> gf(&GameFsm.play(&1, 1, 2, 1))
+						|> GameFsm.data
+		assert length(gamestate.deck) == 1
 	end
 
 	test "game ends when all cards played" do

@@ -12,4 +12,8 @@ defmodule Gofish.PlayerState do
 	def deal_card(player, card) do
 		%Gofish.PlayerState{player | hand: [card | player.hand]}
 	end
+
+	def update(player, hand, pairs) do
+		%Gofish.PlayerState{player | hand: hand, pairs: pairs}
+	end
 end

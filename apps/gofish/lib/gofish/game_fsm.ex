@@ -8,15 +8,12 @@ defmodule Gofish.GameFsm do
 	use Fsm, initial_state: :waiting_for_players, initial_data: %Gofish.GameState{}
 
 	defstate waiting_for_players do
-		defevent join(player_id), data: gamestate do
-			next_state(:waiting_for_players, %{gamestate | players: gamestate.players ++ [%Gofish.PlayerState{player_id: player_id}]})
-		end
-		defevent start(), data: gamestate do
-			init_game(gamestate, Gofish.Deck.create_shuffled(), 5)
+		defevent start(players), data: gamestate do
+			init_game(gamestate, players, Gofish.Deck.create_shuffled(), 5)
 		end
 		# Use for setting up test scenarios
-		defevent start(cards, num_cards_per_hand), data: gamestate do
-			init_game(gamestate, cards, num_cards_per_hand)		
+		defevent start(players, cards, num_cards_per_hand), data: gamestate do
+			init_game(gamestate, players, cards, num_cards_per_hand)		
 		end
 	end
 
@@ -34,7 +31,7 @@ defmodule Gofish.GameFsm do
 		
 	end
 
- 	defp init_game(gamestate = %{players: players}, deck, cards_per_hand) do
+ 	defp init_game(gamestate, players, deck, cards_per_hand) do
  		{rest_cards, dealt_players} = Gofish.Dealer.deal(deck, players, cards_per_hand)
 		next_state(:turn, %{gamestate | players: dealt_players, deck: rest_cards})
  	end

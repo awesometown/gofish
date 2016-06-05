@@ -1,11 +1,12 @@
-defmodule Gofish.GameFsm do
-	import Gofish.GameState
+defmodule Gofish.Game.GameFsm do
+	import Gofish.Game.GameData
 	import Logger
 	
-	alias Gofish.PlayerState
+	alias Gofish.Game.GameData
+	alias Gofish.Game.PlayerData
 	alias Gofish.Cards
 
-	use Fsm, initial_state: :waiting_for_players, initial_data: %Gofish.GameState{}
+	use Fsm, initial_state: :waiting_for_players, initial_data: %GameData{}
 
 	defstate waiting_for_players do
 		defevent start(players), data: gamestate do
@@ -74,7 +75,7 @@ defmodule Gofish.GameFsm do
 
 	defp go_fish(gamestate  = %{deck: [top_card|rest], players: [curr_player|_]}) do
 		result = {:ok, cards, pairs} = Cards.find_pairs([top_card] ++ curr_player.hand)
-		curr_player = PlayerState.update(curr_player, cards, pairs)
+		curr_player = PlayerData.update(curr_player, cards, pairs)
 		
 		if pairs == [] do
 			gamestate = advance_players(gamestate)

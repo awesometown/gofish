@@ -1,8 +1,8 @@
-defmodule Gofish.GameState do
+defmodule Gofish.Game.GameData do
 	defstruct players: [], deck: [], face_up_cards: []
 
 	def new(players, deck) do
-		%Gofish.GameState{players: players, deck: deck}
+		%Gofish.Game.GameData{players: players, deck: deck}
 	end
 
 	def advance_players([current|rest]) do

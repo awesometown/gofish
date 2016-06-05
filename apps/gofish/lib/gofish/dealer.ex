@@ -1,6 +1,6 @@
 defmodule Gofish.Dealer do
 	
-	alias Gofish.PlayerState
+	alias Gofish.Game.PlayerData
 	alias Gofish.Card
 
 	def deal([], players, _) do
@@ -27,10 +27,10 @@ defmodule Gofish.Dealer do
 	end
 
 	def deal_card([card | rest_cards], player) do
-		{rest_cards, PlayerState.deal_card(player, card)}
+		{rest_cards, PlayerData.deal_card(player, card)}
 	end
 
-	@spec exchange_cards(%PlayerState{}, %PlayerState{}, %Card{}, %Card{}) :: {:ok, %PlayerState{}, %PlayerState{}}
+	@spec exchange_cards(%PlayerData{}, %PlayerData{}, %Card{}, %Card{}) :: {:ok, %PlayerData{}, %PlayerData{}}
 	def exchange_cards(source_player, target_player, source_card, matching_card) do
 		source_player_hand = List.delete(source_player.hand, source_card)
 		target_player_hand = List.delete(target_player.hand, matching_card)

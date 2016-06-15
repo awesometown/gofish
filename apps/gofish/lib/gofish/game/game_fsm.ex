@@ -9,7 +9,7 @@ defmodule Gofish.Game.GameFsm do
 	use Fsm, initial_state: :waiting_for_players, initial_data: %GameData{}
 
 	defstate waiting_for_players do
-		defevent start(players), data: gamestate, when: length(players) < 2 do
+		defevent start(players), when: length(players) < 2 do
 			respond({:error, :insufficient_players}, :waiting_for_players)
 		end
 
@@ -78,7 +78,7 @@ defmodule Gofish.Game.GameFsm do
 	end
 
 	defp go_fish(gamestate  = %{deck: [top_card|rest], players: [curr_player|_]}) do
-		result = {:ok, cards, pairs} = Cards.find_pairs([top_card] ++ curr_player.hand)
+		{:ok, cards, pairs} = Cards.find_pairs([top_card] ++ curr_player.hand)
 		curr_player = PlayerData.update(curr_player, cards, pairs)
 		
 		if pairs == [] do

@@ -2,7 +2,6 @@ defmodule Gofish.GameServer do
 	use GenServer
 
 	alias Gofish.Game.GameFsm
-	alias Gofish.Game.GameData
 	alias Gofish.GameServerData
 	alias Gofish.PlayerMap
 
@@ -38,7 +37,7 @@ defmodule Gofish.GameServer do
 		{:ok, %GameServerData{fsm: GameFsm.new, player_map: %PlayerMap{}}}
 	end
 
-	def handle_call(:get_data, {pid, tag}, %{fsm: fsm, player_map: players} = game_server_data) do
+	def handle_call(:get_data, {pid, _tag}, %{fsm: fsm, player_map: players} = game_server_data) do
 		case PlayerMap.get_id(players, pid) do
 			nil ->
 				{:reply, {:error, :pid_not_found}, game_server_data}
@@ -47,7 +46,7 @@ defmodule Gofish.GameServer do
 		end
 	end
 
-	def handle_call(:join, {pid, tag}, %{fsm: fsm, player_map: players} = game_server_data) do
+	def handle_call(:join, {pid, _tag}, %{fsm: fsm, player_map: players} = game_server_data) do
 		case fsm.state do
 			:waiting_for_players ->
 				players = PlayerMap.add(players, pid)
@@ -62,11 +61,12 @@ defmodule Gofish.GameServer do
 		case fsm.state do
 			:waiting_for_players ->
 				result = GameFsm.start(fsm, player_map.players)
-				game_server_data = %GameServerData{game_server_data | fsm: fsm}
 				case result do
 					{{:error, error_code}, fsm} ->
+						game_server_data = %GameServerData{game_server_data | fsm: fsm}
 						{:reply, {:error, error_code}, game_server_data}
 					fsm ->
+						game_server_data = %GameServerData{game_server_data | fsm: fsm}
 						broadcast_game_data(game_server_data)
 						{:reply, :ok, game_server_data}
 				end
@@ -79,17 +79,7 @@ defmodule Gofish.GameServer do
 		PublicGameData.build_for_player(for_player_id, fsm.state, fsm.data)
 	end
 
-	# defp join(from, players) do
-	# 	players = players ++ [from]
-	# 	{:you_are, length(players)}
-	# end
-
-	defp do_start_game(%{fsm: fsm, player_map: players} = game_server_data) do
-		#fsm_players = Enum.map(players, p -> Gofish.Game.PlayerData.new(List.index_of))
-		#data = %{data | Gofish.GameFsm.start}
-	end
-
-	defp broadcast_game_data(%{fsm: fsm, player_map: players}) do
+	defp broadcast_game_data(%{fsm: _fsm, player_map: players}) do
 		Enum.each(Map.keys(players.pid_to_id), fn(pid) -> send(pid, {:notify}) end)
 	end
 end

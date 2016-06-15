@@ -4,7 +4,7 @@ defmodule Gofish.Protocol.PublicGameData do
 	alias Gofish.Protocol.PublicGameData
 	alias Gofish.Protocol.PublicPlayerData
 
-	def build_for_player(requesting_player_id, :waiting_for_players, game_data) do
+	def build_for_player(_requesting_player_id, :waiting_for_players, game_data) do
 		%PublicGameData{
 			state: :waiting_for_players,
 			current_player_id: 0,
@@ -14,7 +14,7 @@ defmodule Gofish.Protocol.PublicGameData do
 		}
 	end
 
-	def build_for_player(requesting_player_id, fsm_state, game_data) do
+	def build_for_player(_requesting_player_id, fsm_state, game_data) do
 		%PublicGameData{
 			state: fsm_state,
 			current_player_id: 0,

@@ -11,7 +11,7 @@ defmodule Gofish.PlayerMap do
 	end
 
 	def new([]) do
-		pm = %PlayerMap{}
+		%PlayerMap{}
 	end
 
 	def new([p|rest]) do

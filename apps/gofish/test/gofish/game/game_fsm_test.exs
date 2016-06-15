@@ -8,6 +8,17 @@ defmodule Gofish.Game.GameFsmTest do
 
 	@moduletag :capture_log
 
+	test "game cannot start with zero players" do
+		{result, _} = GameFsm.new |> GameFsm.start([])
+		assert result == {:error, :insufficient_players}
+	end
+
+	test "game cannot start with one player" do
+		{result, _} = GameFsm.new
+			|> GameFsm.start([PlayerData.new(1)])
+		assert result == {:error, :insufficient_players}
+	end
+
 	test "two players get added to gamestate" do
 		data = GameFsm.new
 				|> GameFsm.start(two_players())

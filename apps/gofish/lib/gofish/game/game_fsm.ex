@@ -9,6 +9,10 @@ defmodule Gofish.Game.GameFsm do
 	use Fsm, initial_state: :waiting_for_players, initial_data: %GameData{}
 
 	defstate waiting_for_players do
+		defevent start(players), data: gamestate, when: length(players) < 2 do
+			respond({:error, :insufficient_players}, :waiting_for_players)
+		end
+
 		defevent start(players), data: gamestate do
 			init_game(gamestate, players, Gofish.Deck.create_shuffled(), 5)
 		end

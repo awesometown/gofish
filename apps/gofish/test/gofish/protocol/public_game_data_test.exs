@@ -14,9 +14,12 @@ defmodule Gofish.Protocol.PublicGameDataTest do
 		player1 = PlayerData.new(1)
 		player2 = PlayerData.new(2)
 		player3 = PlayerData.new(3)
-		game_data = GameData.new([player1, player2, player3], [])
-
-		public_data = PublicGameData.build_for_player(1, :turn, game_data)
+		game_server_data = %Gofish.Game.GameData{
+			players: [player1, player2, player3],
+			deck: Deck.create(),
+			face_up_cards: []
+		}
+		public_data = PublicGameData.build_for_player(1, :turn, game_server_data)
 		assert length(public_data.players) == 3
 	end
 
@@ -26,6 +29,10 @@ defmodule Gofish.Protocol.PublicGameDataTest do
 
 		public_data = PublicGameData.build_for_player(1, :turn, game_data)
 		assert public_data.num_cards_remaining == 52
+	end
+
+	defp pid(p) do
+		:c.pid(0, p, 0)
 	end
 
 end

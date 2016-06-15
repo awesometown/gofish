@@ -10,7 +10,7 @@ defmodule Gofish.GameServerTest do
 
 	test "joined player can get state", %{gameserver: gameserver} do
 		{:you_are, _} = GameServer.join(gameserver)
-		{:ok, gamedata} = GameServer.get_game_data(gameserver)
+		{:ok, _gamedata} = GameServer.get_game_data(gameserver)
 	end
 
 	test "get_game_data returns error for unknown sender", %{gameserver: gameserver} do

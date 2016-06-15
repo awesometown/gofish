@@ -2,13 +2,11 @@ defmodule Gofish.Protocol.PublicGameDataTest do
 	use ExUnit.Case, async: true
 
 	alias Gofish.Protocol.PublicGameData
-	alias Gofish.Protocol.PublicPlayerData
 	
 	alias Gofish.Game.GameData
 	alias Gofish.Game.PlayerData
 
 	alias Gofish.Deck
-	alias Gofish.Card
 
 	test "all players get mapped" do
 		player1 = PlayerData.new(1)
@@ -29,10 +27,6 @@ defmodule Gofish.Protocol.PublicGameDataTest do
 
 		public_data = PublicGameData.build_for_player(1, :turn, game_data)
 		assert public_data.num_cards_remaining == 52
-	end
-
-	defp pid(p) do
-		:c.pid(0, p, 0)
 	end
 
 end

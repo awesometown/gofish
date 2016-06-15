@@ -230,13 +230,13 @@ defmodule Gofish.Game.GameFsmTest do
 			Card.new(3, :clubs),
 			Card.new(3, :spades),
 			Card.new(5, :hearts)]
-		gamestate = GameFsm.new
-						|> GameFsm.start(two_players(), deck, 3)
-						|> match(&GameFsm.play(&1, 1, 2, 1))
-						|> gf(&GameFsm.play(&1, 1, 2, 2))
-						|> match(&GameFsm.play(&1, 2, 1, 3))
-						|> gf(&GameFsm.play(&1, 2, 1, 5))
-						|> GameFsm.data
+		GameFsm.new
+			|> GameFsm.start(two_players(), deck, 3)
+			|> match(&GameFsm.play(&1, 1, 2, 1))
+			|> gf(&GameFsm.play(&1, 1, 2, 2))
+			|> match(&GameFsm.play(&1, 2, 1, 3))
+			|> gf(&GameFsm.play(&1, 2, 1, 5))
+			|> GameFsm.data
 	end
 
 	defp two_players() do

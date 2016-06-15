@@ -47,7 +47,7 @@ defmodule Gofish.Game.GameFsmTest do
 	end
 
 	test "incorrect player cannot play" do
-		{:not_your_turn, _} = GameFsm.new
+		{{:error, :not_your_turn}, _} = GameFsm.new
 									|> GameFsm.start(two_players())
 									|> GameFsm.play(2, 1, "foo")
 	end

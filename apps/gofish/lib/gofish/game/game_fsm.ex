@@ -27,7 +27,7 @@ defmodule Gofish.Game.GameFsm do
 			if player_id == curr_player.player_id do
 				handle_play(player_id, target, requested_rank, gamestate)
 			else
-				respond(:not_your_turn, :turn)
+				respond({:error, :not_your_turn}, :turn)
 			end
 		end
 	end

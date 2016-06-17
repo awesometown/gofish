@@ -1,10 +1,10 @@
-defmodule Gofish.GameServerTest do
+defmodule Gofish.Server.GameServerTest do
 	use ExUnit.Case, async: true
 
-	alias Gofish.GameServer
+	alias Gofish.Server.GameServer
 
 	setup do
-		{:ok, gameserver} = Gofish.GameServer.start_link
+		{:ok, gameserver} = GameServer.start_link
 		{:ok, gameserver: gameserver}
 	end 
 

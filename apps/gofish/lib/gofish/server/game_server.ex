@@ -1,9 +1,9 @@
-defmodule Gofish.GameServer do
+defmodule Gofish.Server.GameServer do
 	use GenServer
 
 	alias Gofish.Game.GameFsm
-	alias Gofish.GameServerData
-	alias Gofish.PlayerMap
+	alias Gofish.Server.GameServerData
+	alias Gofish.Server.PlayerMap
 
 	alias Gofish.Protocol.PublicGameData
 

@@ -1,6 +1,6 @@
-defmodule Gofish.PlayerMapTest do
+defmodule Gofish.Server.PlayerMapTest do
 	use ExUnit.Case, async: true
-	alias Gofish.PlayerMap
+	alias Gofish.Server.PlayerMap
 
 	test "first player gets id 1" do
 		pm = PlayerMap.new()

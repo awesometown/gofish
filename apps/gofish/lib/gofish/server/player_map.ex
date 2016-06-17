@@ -1,9 +1,9 @@
-defmodule Gofish.PlayerMap do
+defmodule Gofish.Server.PlayerMap do
 	defstruct pid_to_id: %{}, players: []
 
 	import Logger
 
-	alias Gofish.PlayerMap
+	alias Gofish.Server.PlayerMap
 	alias Gofish.Game.PlayerData
 
 	def new() do
